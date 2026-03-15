@@ -25,7 +25,7 @@ run_install_skills() {
         "Observe-inspect-amend-evaluate loop for skill evolution"
         "chub CLI wrapper for versioned documentation from context.dev"
         "SVG/HTML diagram generation for architecture and data flow"
-        "8 workflow skills (plan, review, ship, qa, browse, retro, etc.)"
+        "8 specialist workflow skills: plan-ceo-review, plan-eng-review, review, ship, qa, browse, retro, setup-browser-cookies"
     )
 
     # ── Filter out already-installed skills ──

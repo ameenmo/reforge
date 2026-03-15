@@ -54,7 +54,7 @@ Non-destructively upgrades your project:
    - `self-improve` — Observe-inspect-amend-evaluate loop for skill evolution
    - `context-hub` — chub CLI wrapper for versioned documentation
    - `visualize` — SVG/HTML diagram generation for architecture and data flow
-   - `gstack` — 8 workflow skills (plan, review, ship, qa, browse, retro, etc.)
+   - `gstack` — 8 specialist workflow skills (plan-ceo-review, plan-eng-review, review, ship, qa, browse, retro, setup-browser-cookies) from [garrytan/gstack](https://github.com/garrytan/gstack)
 
 ### `reforge install-skills`
 

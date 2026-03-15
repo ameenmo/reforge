@@ -42,7 +42,7 @@ Initial setup — project structure bootstrapped, ready for development.
 │       ├── sync-configs/       # /sync-configs skill
 │       ├── update-docs/        # /update-docs skill
 │       ├── verify/             # /verify skill
-│       └── gstack/             # gstack skill suite
+│       └── gstack/             # gstack: 8 specialist workflow skills (invoke individually, not as /gstack)
 │
 ├── tools/
 │   ├── sync_configs.py         # Generate AI tool configs from SOP
@@ -70,13 +70,15 @@ Initial setup — project structure bootstrapped, ready for development.
 
 ## Skill Commands (gstack)
 
-| Skill | Purpose |
-|-------|---------|
-| `/browse` | Headless browser interaction (navigate, click, screenshot) |
-| `/qa` | QA testing workflows |
-| `/review` | PR code review |
-| `/ship` | Shipping/deploy workflow |
-| `/retro` | Sprint/task retrospective analysis |
-| `/plan-ceo-review` | CEO-level plan review |
-| `/plan-eng-review` | Engineering plan review |
-| `/setup-browser-cookies` | Set up browser cookies for authenticated browsing |
+[gstack](https://github.com/garrytan/gstack) provides 8 specialized workflow skills — each acts as a distinct specialist role. Invoke them individually (not as `/gstack`).
+
+| Skill | Role | Purpose |
+|-------|------|---------|
+| `/plan-ceo-review` | Founder | Challenge assumptions, find the 10-star version of the plan |
+| `/plan-eng-review` | Eng manager | Lock architecture, edge cases, data flow |
+| `/review` | Code reviewer | Pre-landing code review focused on production failure modes |
+| `/ship` | Release engineer | Run tests, create PR, deploy in one command |
+| `/qa` | QA lead | Systematic QA testing workflows |
+| `/browse` | Browser automation | Headless browser: navigate, click, screenshot, test forms |
+| `/retro` | Team lead | Sprint/task retrospective with per-person feedback |
+| `/setup-browser-cookies` | Session manager | Import cookies for authenticated `/browse` and `/qa` sessions |
