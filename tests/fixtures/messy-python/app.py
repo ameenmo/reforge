@@ -15,10 +15,10 @@ import logging
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "my-secret-key-12345"
+app.secret_key = "example_app_secret"
 
-API_KEY = "sk-ant-test1234567890abcdefghijklmnop"
-password = "admin123secret"
+API_KEY = "example_api_key_placeholder"
+password = "example_password"
 
 DATABASE = "app.db"
 UPLOAD_FOLDER = "/tmp/uploads"

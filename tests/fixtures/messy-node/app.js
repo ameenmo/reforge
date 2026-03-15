@@ -12,10 +12,10 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Hardcoded credentials - bad practice
-const API_KEY = "sk-test1234567890abcdefghij";
-const DB_PASSWORD = "mysecretpassword123";
-const JWT_SECRET = "supersecretjwtkey123";
-const ADMIN_TOKEN = "admin-token-xyz-987654";
+const API_KEY = "example_api_key";
+const DB_PASSWORD = "example_db_password";
+const JWT_SECRET = "example_jwt_secret";
+const ADMIN_TOKEN = "example_admin_token";
 
 // Database connection right here in the main file
 const db = mysql.createConnection({
