@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(shellcheck reforge.sh install.sh commands/*.sh lib/*.sh analyzers/*.sh appliers/*.sh)",
+      "Bash(bash reforge.sh version)",
+      "Bash(apt-get install:*)",
+      "Bash(bash reforge.sh analyze tests/fixtures/messy-node)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(bash -x reforge.sh analyze tests/fixtures/messy-node)",
+      "Bash(bash ../../../reforge.sh analyze)",
+      "Bash(shellcheck -x -e SC2034 reforge.sh install.sh commands/*.sh lib/*.sh analyzers/*.sh appliers/*.sh)",
+      "Bash(shellcheck -x -e SC2034 -e SC1091 reforge.sh install.sh commands/*.sh lib/*.sh analyzers/*.sh appliers/*.sh)",
+      "Bash(shellcheck -x -e SC2034 -e SC1091 -S warning reforge.sh install.sh commands/*.sh lib/*.sh analyzers/*.sh appliers/*.sh)"
+    ]
+  }
+}

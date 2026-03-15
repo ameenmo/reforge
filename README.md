@@ -116,6 +116,28 @@ Reforge automatically detects:
 
 See [docs/scoring-rubric.md](docs/scoring-rubric.md) for details.
 
+## Contributing
+
+Contributions are welcome! Whether it's a bug report, feature request, or pull request — all input helps make reforge better.
+
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines
+- Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating
+
+## Development
+
+```bash
+git clone https://github.com/ameenmo/reforge ~/.reforge-dev
+cd ~/.reforge-dev
+
+# Lint
+shellcheck reforge.sh install.sh commands/*.sh lib/*.sh analyzers/*.sh appliers/*.sh
+
+# Smoke test (reforge analyzes the current directory)
+cd tests/fixtures/messy-node && bash ../../../reforge.sh analyze && cd -
+cd tests/fixtures/messy-python && bash ../../../reforge.sh analyze && cd -
+cd tests/fixtures/decent-project && bash ../../../reforge.sh analyze && cd -
+```
+
 ## License
 
 MIT

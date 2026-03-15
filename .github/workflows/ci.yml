@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -x -e SC2034 -e SC1091 -S warning
+        with:
+          scandir: .
+          additional_files: "reforge.sh install.sh"
+
+  smoke-test:
+    name: Smoke Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version check
+        run: bash reforge.sh version
+
+      - name: Analyze messy-node fixture
+        run: cd tests/fixtures/messy-node && bash ../../../reforge.sh analyze
+
+      - name: Analyze messy-python fixture
+        run: cd tests/fixtures/messy-python && bash ../../../reforge.sh analyze
+
+      - name: Analyze decent-project fixture
+        run: cd tests/fixtures/decent-project && bash ../../../reforge.sh analyze

@@ -1,0 +1,66 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened?
+      placeholder: A clear description of the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Run `reforge analyze` in a project with...
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen, and what actually happened?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Reforge Version
+      description: Output of `reforge version`
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: OS / Shell
+      description: Your operating system and shell
+      placeholder: "macOS 15 / bash 5.2"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Target Project Language
+      description: What language is the project you ran reforge on?
+      options:
+        - Node.js / TypeScript
+        - Python
+        - Go
+        - Rust
+        - Ruby
+        - Java
+        - PHP
+        - Other
+    validations:
+      required: false
