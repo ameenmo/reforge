@@ -1,0 +1,82 @@
+# Agent Context Index
+
+**Read this file FIRST before any implementation work.**
+
+## Project
+
+{{PROJECT_NAME}} — <!-- Add one-line project description here -->
+
+## Current Phase
+
+Initial setup — project structure bootstrapped, ready for development.
+
+## When to Read What
+
+| You need to... | Read this |
+|----------------|-----------|
+| Understand project rules | `directives/SOP.md` |
+| Understand architecture | `.agent/system/architecture.md` |
+| Find a file or module | `.agent/system/file_map.md` |
+| Debug common issues | `.agent/sops/common_errors.md` |
+| Check active tasks | `.agent/tasks/` |
+| See tool-specific hints | `.agent/hints/{tool}.md` |
+
+## Folder Map
+
+```
+{{PROJECT_NAME}}/
+├── directives/
+│   └── SOP.md                  # CANONICAL source of truth (all project rules)
+│
+├── .agent/                     # AI agent context layer
+│   ├── readme.md               # This file — read FIRST
+│   ├── instructions.md         # Cross-tool conventions
+│   ├── hints/                  # Tool-specific guidance
+│   ├── system/                 # Architecture docs
+│   ├── sops/                   # Standard operating procedures
+│   └── tasks/                  # Task tracking
+│
+├── .claude/                    # Claude Code configuration
+│   ├── settings.json           # Permissions and env vars
+│   └── skills/                 # Claude Code skills
+│       ├── sync-configs/       # /sync-configs skill
+│       ├── update-docs/        # /update-docs skill
+│       ├── verify/             # /verify skill
+│       └── gstack/             # gstack skill suite
+│
+├── tools/
+│   ├── sync_configs.py         # Generate AI tool configs from SOP
+│   └── verify_{{DOMAIN}}.py    # Project verification checks
+│
+├── CLAUDE.md                   # Generated — do not hand-edit
+├── AGENT.md                    # Generated — do not hand-edit
+├── GEMINI.md                   # Generated — do not hand-edit
+├── .cursorrules                # Generated — do not hand-edit
+└── .claudecode.md              # Generated — do not hand-edit
+```
+
+## Critical Rules
+
+1. **Single source of truth:** Edit `directives/SOP.md` or `.agent/hints/`, then run `python tools/sync_configs.py`
+2. **Never hand-edit** generated files: `CLAUDE.md`, `AGENT.md`, `GEMINI.md`, `.cursorrules`, `.claudecode.md`
+3. Run `python tools/verify_{{DOMAIN}}.py` before completing any task
+
+## Quick Commands
+
+| Command | Purpose |
+|---------|---------|
+| `python tools/verify_{{DOMAIN}}.py` | Run verification checks |
+| `python tools/sync_configs.py` | Regenerate all AI configs |
+
+## Skill Commands (gstack)
+
+| Skill | Purpose |
+|-------|---------|
+| `/browse` | Headless browser interaction (navigate, click, screenshot) |
+| `/qa` | QA testing workflows |
+| `/review` | PR code review |
+| `/ship` | Shipping/deploy workflow |
+| `/retro` | Sprint/task retrospective analysis |
+| `/plan-ceo-review` | CEO-level plan review |
+| `/plan-eng-review` | Engineering plan review |
+| `/setup-browser-cookies` | Set up browser cookies for authenticated browsing |

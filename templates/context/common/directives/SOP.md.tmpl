@@ -1,0 +1,91 @@
+# Project Directives — {{PROJECT_NAME}}
+
+## 1. Purpose
+
+<!-- Describe what this project does, who it's for, and the core value proposition. -->
+
+## 2. Environment
+
+| Component | Technology |
+|-----------|-----------|
+| Tech Stack | {{TECH_STACK}} |
+
+<!-- Add rows for: Runtime, Language, Framework, Database, Auth, Deployment, etc. -->
+
+## 3. Architecture
+
+```
+<!-- Describe the high-level architecture: request flow, module boundaries, data flow. -->
+```
+
+**Key patterns:**
+<!-- List the important architectural patterns used in this project. -->
+
+## 4. Code Standards
+
+<!-- Define file organization, naming conventions, import rules, validation patterns. -->
+
+| What | Where |
+|------|-------|
+<!-- Map logical components to directory paths. -->
+
+**Conventions:**
+<!-- List coding conventions specific to this project. -->
+
+## 5. Testing
+
+- **Framework:** <!-- e.g., Jest, Vitest, Bun test, pytest -->
+- **Test location:** <!-- e.g., src/__tests__/, tests/ -->
+- **Run tests:** <!-- e.g., bun test, npm test -->
+- **Coverage:** All new code should have corresponding tests
+
+## 6. Deployment
+
+**Local development:**
+```bash
+# Add local dev commands here
+```
+
+**Production:**
+```bash
+# Add production deploy commands here
+```
+
+**Environment variables (required):**
+<!-- List all required env vars -->
+
+## 7. Hard Rules
+
+1. **NEVER** hardcode API keys, secrets, or tokens — use environment variables
+2. Run `python tools/verify_{{DOMAIN}}.py` before completing any task
+3. **Never** hand-edit generated config files (`CLAUDE.md`, `AGENT.md`, `GEMINI.md`, `.cursorrules`, `.claudecode.md`)
+4. Edit `directives/SOP.md` or `.agent/hints/`, then run `python tools/sync_configs.py` to update configs
+<!-- Add project-specific hard rules below -->
+
+## 8. gstack
+
+Use the `/browse` skill from gstack for **all web browsing**. Never use `mcp__claude-in-chrome__*` tools.
+
+Available gstack skills:
+- `/plan-ceo-review` — CEO-level plan review
+- `/plan-eng-review` — Engineering plan review
+- `/review` — Code review
+- `/ship` — Ship code
+- `/browse` — Web browsing (use this instead of MCP browser tools)
+- `/qa` — QA testing
+- `/setup-browser-cookies` — Set up browser cookies for authenticated browsing
+- `/retro` — Retrospective
+
+If gstack skills aren't working, run `cd .claude/skills/gstack && ./setup` to build the binary and register skills.
+
+## 9. Workflow
+
+Follow this workflow for all significant work:
+
+1. **Plan** — Enter plan mode, define approach
+2. **CEO Review** — `/plan-ceo-review` — Challenge assumptions, find the 10-star version
+3. **Eng Review** — `/plan-eng-review` — Lock architecture, edge cases, data flow
+4. **Implement** — Write code following the plan
+5. **Verify** — `/verify` — Run automated checks
+6. **Review** — `/review` — Pre-landing code review
+7. **Ship** — `/ship` — Tests, PR, deploy

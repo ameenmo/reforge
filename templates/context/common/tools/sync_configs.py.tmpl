@@ -1,0 +1,415 @@
+#!/usr/bin/env python3
+"""Assemble AI tool configurations from SOP + tool-specific hints.
+
+Reads directives/SOP.md as the base content, appends tool-specific hints
+from .agent/hints/, and writes generated config files with auto-generated
+headers and universal footers.
+
+Also syncs Claude Code skills (.claude/skills/) to Gemini CLI, Cursor,
+and Codex formats.
+
+Usage:
+    python tools/sync_configs.py
+"""
+
+import json
+import os
+import re
+import shutil
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SOP_PATH = PROJECT_ROOT / "directives" / "SOP.md"
+HINTS_DIR = PROJECT_ROOT / ".agent" / "hints"
+
+# ── Config file targets ──────────────────────────────────────────
+# Maps output filename → hint filename in .agent/hints/
+TARGETS = {
+    "CLAUDE.md":      "claude.md",
+    "AGENT.md":       "agent.md",
+    "GEMINI.md":      "gemini.md",
+    ".cursorrules":   "cursorrules.md",
+    ".claudecode.md": "claudecode.md",
+}
+
+# These targets get a condensed SOP (subset of sections) instead of the full SOP.
+CONDENSED_TARGETS = {"CLAUDE.md", ".claudecode.md", "AGENT.md", "GEMINI.md", ".cursorrules"}
+
+# SOP section headings to include in the condensed version.
+CONDENSED_SECTIONS = [
+    "1. Purpose",
+    "2. Environment",
+    "4. Code Standards",
+    "7. Hard Rules",
+    "8. gstack",
+]
+
+# ── Templates ─────────────────────────────────────────────────────
+
+HEADER_TEMPLATE = """\
+<!-- ============================================================
+     AUTO-GENERATED — DO NOT EDIT MANUALLY
+     Source: directives/SOP.md + .agent/hints/{hint_file}
+     Regenerate: python tools/sync_configs.py
+     ============================================================ -->
+
+"""
+
+CONDENSED_NOTICE = """\
+<!-- CONDENSED: Only critical SOP sections are included below.
+     For full project rules, read: directives/SOP.md -->
+
+"""
+
+FOOTER_TEMPLATE = """
+
+---
+
+<!-- Universal Footer — appended by sync_configs.py -->
+
+## Mandatory Verification
+
+Before completing any task, run:
+
+```bash
+python tools/verify_{{DOMAIN}}.py
+```
+
+A non-zero exit code means the task is **not done**.
+
+## Quick Reference
+
+| What | Where |
+|------|-------|
+| Agent index (read first) | `.agent/readme.md` |
+| Canonical SOP (full) | `directives/SOP.md` |
+| System architecture | `.agent/system/architecture.md` |
+| File map | `.agent/system/file_map.md` |
+| Known issues & fixes | `.agent/sops/` |
+| Task tracking | `.agent/tasks/` |
+| Tool hints | `.agent/hints/` |
+| Verifier | `tools/verify_{{DOMAIN}}.py` |
+| Sync script | `tools/sync_configs.py` |
+"""
+
+# ── Skill syncing ────────────────────────────────────────────────
+
+CLAUDE_SKILLS_DIR = PROJECT_ROOT / ".claude" / "skills"
+
+# Claude-specific frontmatter fields to strip for other tools
+CLAUDE_ONLY_FIELDS = {"allowed-tools", "disable-model-invocation", "user-invocable"}
+
+SKILL_TARGETS = {
+    "gemini": {
+        "skills_dir": PROJECT_ROOT / ".gemini" / "skills",
+        "commands_dir": PROJECT_ROOT / ".gemini" / "commands",
+        "command_format": "toml",
+    },
+    "cursor": {
+        "skills_dir": PROJECT_ROOT / ".cursor" / "skills",
+        "commands_dir": PROJECT_ROOT / ".cursor" / "commands",
+        "command_format": "markdown",
+    },
+    "codex": {
+        "skills_dir": PROJECT_ROOT / ".agents" / "skills",
+        "commands_dir": None,
+        "command_format": None,
+    },
+}
+
+
+# ── Core functions ────────────────────────────────────────────────
+
+def read_file(path: Path) -> str:
+    if not path.exists():
+        print(f"ERROR: {path} not found")
+        sys.exit(1)
+    return path.read_text(encoding="utf-8")
+
+
+def extract_sections(sop: str, section_titles: list[str]) -> str:
+    """Extract specific ## sections from the SOP markdown."""
+    chunks = []
+    for title in section_titles:
+        pattern = rf"(## {re.escape(title)}.*?)(?=\n## |\Z)"
+        match = re.search(pattern, sop, re.DOTALL)
+        if match:
+            chunks.append(match.group(1).rstrip())
+    return "\n\n---\n\n".join(chunks)
+
+
+def assemble(sop: str, hints: str, hint_file: str, condensed: bool = False) -> str:
+    header = HEADER_TEMPLATE.format(hint_file=hint_file)
+    if condensed:
+        sop_content = CONDENSED_NOTICE + extract_sections(sop, CONDENSED_SECTIONS)
+    else:
+        sop_content = sop
+    return header + sop_content + "\n\n---\n\n" + hints + FOOTER_TEMPLATE
+
+
+SAFE_YAML_SCALAR_RE = re.compile(r"^[A-Za-z0-9._/-]+$")
+
+
+def parse_frontmatter_value(raw_value: str):
+    value = raw_value.strip()
+    lowered = value.lower()
+    if lowered == "true":
+        return True
+    if lowered == "false":
+        return False
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+        return value[1:-1]
+    return value
+
+
+def parse_frontmatter(lines: list[str]) -> dict:
+    frontmatter = {}
+    index = 0
+
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if not stripped:
+            index += 1
+            continue
+        if ":" not in line:
+            raise ValueError(f"Invalid frontmatter line: {line}")
+
+        key, _, raw_value = line.partition(":")
+        key = key.strip()
+        value = raw_value.lstrip()
+
+        if value in {"|", "|-", ">", ">-"}:
+            block_lines = []
+            index += 1
+            while index < len(lines):
+                next_line = lines[index]
+                if next_line.startswith("  "):
+                    block_lines.append(next_line[2:])
+                    index += 1
+                    continue
+                if not next_line.strip():
+                    block_lines.append("")
+                    index += 1
+                    continue
+                break
+            frontmatter[key] = "\n".join(block_lines).rstrip("\n")
+            continue
+
+        if value == "":
+            list_items = []
+            index += 1
+            while index < len(lines):
+                next_line = lines[index]
+                if not next_line.strip():
+                    index += 1
+                    continue
+                if next_line.startswith("  - "):
+                    list_items.append(parse_frontmatter_value(next_line[4:]))
+                    index += 1
+                    continue
+                break
+            frontmatter[key] = list_items
+            continue
+
+        frontmatter[key] = parse_frontmatter_value(value)
+        index += 1
+
+    return frontmatter
+
+
+def parse_skill(skill_path: Path) -> dict:
+    content = skill_path.read_text(encoding="utf-8")
+    if not content.startswith("---\n"):
+        return {"frontmatter": {}, "body": content}
+    lines = content.splitlines()
+    try:
+        end_index = lines[1:].index("---") + 1
+    except ValueError as exc:
+        raise ValueError(f"Unterminated frontmatter in {skill_path}") from exc
+
+    body = "\n".join(lines[end_index + 1 :]).lstrip("\n")
+    frontmatter = parse_frontmatter(lines[1:end_index])
+    return {"frontmatter": frontmatter, "body": body}
+
+
+def clean_frontmatter(fm: dict) -> dict:
+    return {k: v for k, v in fm.items() if k not in CLAUDE_ONLY_FIELDS}
+
+
+def format_yaml_scalar(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+
+    text = str(value)
+    if not text or not SAFE_YAML_SCALAR_RE.fullmatch(text):
+        return json.dumps(text)
+    return text
+
+
+def generate_skill_md(fm: dict, body: str) -> str:
+    lines = ["---"]
+    for key, value in fm.items():
+        if isinstance(value, list):
+            lines.append(f"{key}:")
+            for item in value:
+                lines.append(f"  - {format_yaml_scalar(item)}")
+            continue
+
+        if isinstance(value, str) and "\n" in value:
+            lines.append(f"{key}: |")
+            for block_line in value.splitlines():
+                lines.append(f"  {block_line}")
+            continue
+
+        lines.append(f"{key}: {format_yaml_scalar(value)}")
+    lines.append("---")
+    lines.append("")
+    lines.append(body)
+    return "\n".join(lines)
+
+
+def generate_gemini_command(name: str, description: str, argument_hint: str = None) -> str:
+    short_desc = description.split(". ")[0] + "."
+    prompt_parts = [description]
+    if argument_hint:
+        prompt_parts.append(f"\nArguments: {argument_hint}")
+    prompt_parts.append(f"\nFollow the instructions in .gemini/skills/{name}/SKILL.md")
+    prompt = "\n".join(prompt_parts)
+    escaped_desc = short_desc.replace("\\", "\\\\").replace('"', '\\"')
+    return f'description = "{escaped_desc}"\nprompt = """{prompt}"""\n'
+
+
+def generate_cursor_command(name: str, description: str, argument_hint: str = None) -> str:
+    parts = [description]
+    if argument_hint:
+        parts.append(f"\nArguments: {argument_hint}")
+    parts.append(f"\nFollow the instructions in .cursor/skills/{name}/SKILL.md")
+    return "\n".join(parts) + "\n"
+
+
+def cleanup_stale(target_dir: Path, valid_names: set, is_dir: bool = True):
+    if not target_dir.exists():
+        return
+    for child in target_dir.iterdir():
+        name = child.name if is_dir else child.stem
+        if is_dir and child.is_dir() and name not in valid_names:
+            shutil.rmtree(child)
+            print(f"  [-] Removed stale: {child}")
+        elif not is_dir and child.is_file() and name not in valid_names:
+            child.unlink()
+            print(f"  [-] Removed stale: {child}")
+
+
+def sync_skills() -> int:
+    if not CLAUDE_SKILLS_DIR.exists():
+        print("  No .claude/skills/ found, skipping skill sync.")
+        return 0
+
+    skill_dirs = sorted([d for d in CLAUDE_SKILLS_DIR.iterdir() if d.is_dir()])
+    if not skill_dirs:
+        print("  No skills found in .claude/skills/")
+        return 0
+
+    total_files = 0
+    valid_skill_names = set()
+    invocable_names = set()
+
+    for skill_dir in skill_dirs:
+        skill_file = skill_dir / "SKILL.md"
+        if not skill_file.exists():
+            continue
+
+        parsed = parse_skill(skill_file)
+        fm = parsed["frontmatter"]
+        body = parsed["body"]
+
+        name = fm.get("name", skill_dir.name)
+        description = fm.get("description", "")
+        argument_hint = fm.get("argument-hint")
+        user_invocable = fm.get("user-invocable", True)
+        if isinstance(user_invocable, str):
+            user_invocable = user_invocable.lower() != "false"
+
+        valid_skill_names.add(name)
+        if user_invocable:
+            invocable_names.add(name)
+
+        cleaned_fm = clean_frontmatter(fm)
+        skill_content = generate_skill_md(cleaned_fm, body)
+
+        for tool_name, config in SKILL_TARGETS.items():
+            out_dir = config["skills_dir"] / name
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "SKILL.md").write_text(skill_content, encoding="utf-8")
+            total_files += 1
+
+            if config["commands_dir"] and user_invocable:
+                config["commands_dir"].mkdir(parents=True, exist_ok=True)
+                if config["command_format"] == "toml":
+                    cmd = generate_gemini_command(name, description, argument_hint)
+                    cmd_file = config["commands_dir"] / f"{name}.toml"
+                elif config["command_format"] == "markdown":
+                    cmd = generate_cursor_command(name, description, argument_hint)
+                    cmd_file = config["commands_dir"] / f"{name}.md"
+                else:
+                    continue
+                cmd_file.write_text(cmd, encoding="utf-8")
+                total_files += 1
+
+    # Clean up stale entries
+    for config in SKILL_TARGETS.values():
+        cleanup_stale(config["skills_dir"], valid_skill_names, is_dir=True)
+        if config["commands_dir"]:
+            cleanup_stale(config["commands_dir"], invocable_names, is_dir=False)
+
+    print(f"  Skills synced: {len(valid_skill_names)} skills -> {total_files} files")
+    return total_files
+
+
+def ensure_agents_md_symlink():
+    """Create AGENTS.md symlink -> AGENT.md for Codex compatibility."""
+    agents_md = PROJECT_ROOT / "AGENTS.md"
+    agent_md = PROJECT_ROOT / "AGENT.md"
+
+    if agents_md.is_symlink():
+        if agents_md.resolve() == agent_md.resolve():
+            return
+        agents_md.unlink()
+    elif agents_md.exists():
+        agents_md.unlink()
+
+    if agent_md.exists():
+        agents_md.symlink_to("AGENT.md")
+        print("  [+] AGENTS.md -> AGENT.md (symlink for Codex)")
+
+
+def main():
+    sop = read_file(SOP_PATH)
+    success = 0
+
+    for output_file, hint_file in TARGETS.items():
+        hints = read_file(HINTS_DIR / hint_file)
+        condensed = output_file in CONDENSED_TARGETS
+        content = assemble(sop, hints, hint_file, condensed=condensed)
+        (PROJECT_ROOT / output_file).write_text(content, encoding="utf-8")
+        label = " (condensed)" if condensed else ""
+        success += 1
+        print(f"  [+] {output_file}{label} <- SOP + {hint_file}")
+
+    print(f"\nGenerated {success}/{len(TARGETS)} config files.")
+    print("\nSyncing skills...")
+    sync_skills()
+    ensure_agents_md_symlink()
+
+    if success == len(TARGETS):
+        print("\nAll configurations synced successfully.")
+        return 0
+    else:
+        print("\nWARNING: Some config files failed to generate.")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,28 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI context (auto-generated)
+# CLAUDE.md
+# AGENT.md
+# GEMINI.md
+# .cursorrules
+# .claudecode.md
+
+# gstack
+.gstack/
+
+# Reforge
+.reforge/

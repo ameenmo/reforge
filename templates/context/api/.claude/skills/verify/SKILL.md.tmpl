@@ -1,0 +1,15 @@
+---
+name: verify
+description: Run {{PROJECT_NAME}} API verification checks. Must pass before completing any code task.
+user-invocable: true
+allowed-tools: Bash, Read
+---
+
+## Steps
+
+1. Run the verifier:
+   ```bash
+   python tools/verify_{{DOMAIN}}.py
+   ```
+2. If any check fails, report the specific failure and the fix needed.
+3. A non-zero exit code means the task is **not done**.

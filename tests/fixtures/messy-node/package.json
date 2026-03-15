@@ -1,0 +1,17 @@
+{
+  "name": "messy-node-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "mysql": "^2.18.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5"
+  }
+}

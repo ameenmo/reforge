@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Welcome to My App</h1>
+        <div id="users-list"></div>
+        <div id="products-list"></div>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <script>
+        // Inline JS because why not
+        fetch('http://localhost:3000/api/users')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('users-list').innerHTML = data.map(u => '<p>' + u.name + '</p>').join('');
+            });
+    </script>
+</body>
+</html>

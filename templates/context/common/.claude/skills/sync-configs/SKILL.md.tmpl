@@ -1,0 +1,18 @@
+---
+name: sync-configs
+description: Regenerate all AI tool config files from the canonical SOP and tool-specific hints.
+user-invocable: true
+allowed-tools: Bash, Read, Write, Edit
+---
+
+## Steps
+
+1. Run the sync script:
+   ```bash
+   python tools/sync_configs.py
+   ```
+2. Verify all outputs were generated:
+   - Config files: `CLAUDE.md`, `AGENT.md`, `GEMINI.md`, `.cursorrules`, `.claudecode.md`
+   - Symlink: `AGENTS.md` → `AGENT.md`
+   - Skills: `.gemini/skills/`, `.cursor/skills/`, `.agents/skills/`
+3. Stage and commit the generated files.

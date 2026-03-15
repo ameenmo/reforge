@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+"""{{PROJECT_NAME}} data pipeline verification checks.
+
+Scans source files to verify that code adheres to project rules
+defined in directives/SOP.md.
+
+Exit codes:
+    0 — All checks pass
+    1 — One or more checks failed
+"""
+
+import os
+import re
+import sys
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def scan_files(directory, extensions=(".py", ".ts", ".js", ".sql")):
+    """Yield all files with given extensions in directory recursively."""
+    for root, _dirs, files in os.walk(directory):
+        if "__pycache__" in root or ".venv" in root or "node_modules" in root:
+            continue
+        for f in files:
+            if any(f.endswith(ext) for ext in extensions):
+                yield os.path.join(root, f)
+
+
+def check_no_hardcoded_secrets():
+    """Ensure no hardcoded credentials in source files."""
+    secret_patterns = [
+        (r'["\']sk-[a-zA-Z0-9]{20,}["\']', "OpenAI API key"),
+        (r'["\']ghp_[a-zA-Z0-9]{36,}["\']', "GitHub personal access token"),
+        (r'password\s*[:=]\s*["\'][^"\']{8,}["\']', "Hardcoded password"),
+        (r'["\']AKIA[A-Z0-9]{16}["\']', "AWS access key"),
+        (r'connection_string\s*[:=]\s*["\'][^"\']+["\']', "Hardcoded connection string"),
+        (r'["\']postgresql://[^"\']+["\']', "Hardcoded PostgreSQL URL"),
+        (r'["\']mysql://[^"\']+["\']', "Hardcoded MySQL URL"),
+        (r'["\']mongodb(\+srv)?://[^"\']+["\']', "Hardcoded MongoDB URL"),
+    ]
+
+    violations = []
+    for filepath in scan_files(PROJECT_ROOT):
+        if "test" in os.path.basename(filepath).lower():
+            continue
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for pattern, desc in secret_patterns:
+            matches = re.findall(pattern, content)
+            for match in matches:
+                rel_path = os.path.relpath(filepath, PROJECT_ROOT)
+                violations.append(f"{rel_path}: {desc} found")
+
+    if violations:
+        detail = "; ".join(violations[:3])
+        if len(violations) > 3:
+            detail += f" (+{len(violations) - 3} more)"
+        return ("No hardcoded credentials", False, detail)
+    return ("No hardcoded credentials", True, None)
+
+
+def check_schema_validation():
+    """Check that schema validation patterns exist in the codebase."""
+    validation_indicators = [
+        "pydantic", "marshmallow", "jsonschema", "cerberus",  # Python
+        "zod", "joi", "yup", "ajv",  # JavaScript
+        "dataclass", "TypedDict",  # Python typing
+        "schema", "validate",  # General
+    ]
+
+    found = False
+    for filepath in scan_files(PROJECT_ROOT, extensions=(".py", ".ts", ".js")):
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for indicator in validation_indicators:
+            if indicator in content:
+                found = True
+                break
+        if found:
+            break
+
+    if not found:
+        return ("Schema validation present", False, "No schema validation library detected")
+    return ("Schema validation present", True, None)
+
+
+def check_idempotency_patterns():
+    """Check for idempotency patterns (upsert, ON CONFLICT, merge)."""
+    idempotency_indicators = [
+        "upsert", "on_conflict", "ON CONFLICT", "MERGE INTO",
+        "INSERT.*ON DUPLICATE", "replace_into", "REPLACE INTO",
+        "if_exists", "create_or_update", "get_or_create",
+    ]
+
+    found = False
+    for filepath in scan_files(PROJECT_ROOT):
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for indicator in idempotency_indicators:
+            if re.search(indicator, content, re.IGNORECASE):
+                found = True
+                break
+        if found:
+            break
+
+    # This is informational — not a hard failure for new projects
+    if not found:
+        return ("Idempotency patterns", True, "No idempotency patterns detected yet (expected for new projects)")
+    return ("Idempotency patterns", True, "Idempotency patterns found")
+
+
+def check_retry_logic():
+    """Check that retry/backoff patterns exist for external calls."""
+    retry_indicators = [
+        "retry", "backoff", "tenacity", "retrying",
+        "max_retries", "retry_count", "exponential_backoff",
+    ]
+
+    found = False
+    for filepath in scan_files(PROJECT_ROOT, extensions=(".py", ".ts", ".js")):
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for indicator in retry_indicators:
+            if indicator in content.lower():
+                found = True
+                break
+        if found:
+            break
+
+    # Informational for new projects
+    if not found:
+        return ("Retry logic", True, "No retry patterns detected yet (expected for new projects)")
+    return ("Retry logic", True, "Retry patterns found")
+
+
+def check_required_files():
+    """Verify key structural files exist."""
+    required = [
+        "directives/SOP.md",
+        ".agent/readme.md",
+        "tools/sync_configs.py",
+        "tools/verify_{{DOMAIN}}.py",
+    ]
+
+    missing = []
+    for rel_path in required:
+        full_path = os.path.join(PROJECT_ROOT, rel_path)
+        if not os.path.exists(full_path):
+            missing.append(rel_path)
+
+    if missing:
+        return ("Required files exist", False, f"Missing: {', '.join(missing)}")
+    return ("Required files exist", True, f"All {len(required)} files present")
+
+
+def main():
+    print("=" * 50)
+    print("{{PROJECT_NAME}} — Pipeline Verification")
+    print("Reference: directives/SOP.md")
+    print("=" * 50)
+
+    checks = [
+        check_no_hardcoded_secrets(),
+        check_schema_validation(),
+        check_idempotency_patterns(),
+        check_retry_logic(),
+        check_required_files(),
+    ]
+
+    all_passed = True
+    for name, passed, detail in checks:
+        status = "PASS" if passed else "FAIL"
+        icon = "[+]" if passed else "[!]"
+        print(f"  {icon} {status}: {name}")
+        if detail:
+            print(f"         {detail}")
+        if not passed:
+            all_passed = False
+
+    print("=" * 50)
+    if all_passed:
+        print("Result: ALL CHECKS PASSED")
+        return 0
+    else:
+        print("Result: CHECKS FAILED — fix before completing task")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
