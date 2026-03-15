@@ -75,13 +75,6 @@ print_report() {
     local project_basename
     project_basename=$(basename "$(cd "$project_dir" && pwd)")
 
-    # Normalize arrays (safe under set -u; macOS CI may have them unset)
-    STRUCTURE_FINDINGS=("${STRUCTURE_FINDINGS[@]+"${STRUCTURE_FINDINGS[@]}"}")
-    LARGE_FILES_FINDINGS=("${LARGE_FILES_FINDINGS[@]+"${LARGE_FILES_FINDINGS[@]}"}")
-    ESSENTIALS_PRESENT=("${ESSENTIALS_PRESENT[@]+"${ESSENTIALS_PRESENT[@]}"}")
-    ESSENTIALS_MISSING=("${ESSENTIALS_MISSING[@]+"${ESSENTIALS_MISSING[@]}"}")
-    SECRETS_FINDINGS=("${SECRETS_FINDINGS[@]+"${SECRETS_FINDINGS[@]}"}")
-
     echo -e "${BOLD}"
     echo "  ══════════════════════════════════════"
     echo "    REFORGE ANALYSIS"
@@ -119,12 +112,16 @@ print_report() {
 
     # Essentials section
     echo -e "\n  ${BOLD}ESSENTIALS${RESET}                     ${DIM}[${ESSENTIALS_SCORE}/25]${RESET}"
-    for item in "${ESSENTIALS_PRESENT[@]}"; do
-        echo -e "    ${GREEN}[x]${RESET} ${item}"
-    done
-    for item in "${ESSENTIALS_MISSING[@]}"; do
-        echo -e "    ${RED}[ ]${RESET} ${item}"
-    done
+    if [ ${#ESSENTIALS_PRESENT[@]} -gt 0 ]; then
+        for item in "${ESSENTIALS_PRESENT[@]}"; do
+            echo -e "    ${GREEN}[x]${RESET} ${item}"
+        done
+    fi
+    if [ ${#ESSENTIALS_MISSING[@]} -gt 0 ]; then
+        for item in "${ESSENTIALS_MISSING[@]}"; do
+            echo -e "    ${RED}[ ]${RESET} ${item}"
+        done
+    fi
 
     # Secrets section
     echo -e "\n  ${BOLD}SECRETS${RESET}                        ${DIM}[${SECRETS_SCORE}/30]${RESET}"
@@ -154,13 +151,6 @@ save_report() {
     local project_basename
     project_basename=$(basename "$(cd "$project_dir" && pwd)")
 
-    # Normalize arrays (safe under set -u)
-    STRUCTURE_FINDINGS=("${STRUCTURE_FINDINGS[@]+"${STRUCTURE_FINDINGS[@]}"}")
-    LARGE_FILES_FINDINGS=("${LARGE_FILES_FINDINGS[@]+"${LARGE_FILES_FINDINGS[@]}"}")
-    ESSENTIALS_PRESENT=("${ESSENTIALS_PRESENT[@]+"${ESSENTIALS_PRESENT[@]}"}")
-    ESSENTIALS_MISSING=("${ESSENTIALS_MISSING[@]+"${ESSENTIALS_MISSING[@]}"}")
-    SECRETS_FINDINGS=("${SECRETS_FINDINGS[@]+"${SECRETS_FINDINGS[@]}"}")
-
     mkdir -p "$project_dir/.reforge"
 
     cat > "$report_file" << EOF
@@ -189,8 +179,8 @@ $(if [ ${#LARGE_FILES_FINDINGS[@]} -eq 0 ]; then echo "No oversized files found.
 
 ## Essentials [${ESSENTIALS_SCORE}/25]
 
-$(for item in "${ESSENTIALS_PRESENT[@]}"; do echo "- [x] $item"; done)
-$(for item in "${ESSENTIALS_MISSING[@]}"; do echo "- [ ] $item"; done)
+$(if [ ${#ESSENTIALS_PRESENT[@]} -gt 0 ]; then for item in "${ESSENTIALS_PRESENT[@]}"; do echo "- [x] $item"; done; fi)
+$(if [ ${#ESSENTIALS_MISSING[@]} -gt 0 ]; then for item in "${ESSENTIALS_MISSING[@]}"; do echo "- [ ] $item"; done; fi)
 
 ## Secrets [${SECRETS_SCORE}/30]
 
