@@ -10,7 +10,9 @@ Restructure existing projects for AI-native development.
 # Option A: Clone and install
 git clone https://github.com/ameenmo/reforge ~/.reforge
 ~/.reforge/install.sh
+```
 
+```bash
 # Option B: One-liner
 curl -fsSL https://raw.githubusercontent.com/ameenmo/reforge/main/install.sh | bash
 ```
@@ -19,8 +21,9 @@ curl -fsSL https://raw.githubusercontent.com/ameenmo/reforge/main/install.sh | b
 
 ```bash
 cd my-messy-project
-reforge analyze    # Diagnostic report + A-F grade
-reforge apply      # Backup branch, add AI context layer + missing configs
+reforge analyze          # Diagnostic report + A-F grade
+reforge apply            # Backup + configs + context layer + global skills
+reforge install-skills   # Install global skills only (standalone)
 ```
 
 ## What It Does
@@ -46,16 +49,27 @@ Non-destructively upgrades your project:
    - `.claude/` — Claude Code config + skills
    - `tools/sync_configs.py` — Multi-tool config sync engine
    - `tools/verify_*.py` — Automated verification checks
+4. **Installs global skills (optional)** — Interactive questionnaire to install skills to `~/.claude/skills/`:
+   - `autoresearch` — Autonomous modify-test-evaluate loop for metric optimization
+   - `self-improve` — Observe-inspect-amend-evaluate loop for skill evolution
+   - `context-hub` — chub CLI wrapper for versioned documentation
+   - `visualize` — SVG/HTML diagram generation for architecture and data flow
+   - `gstack` — 8 workflow skills (plan, review, ship, qa, browse, retro, etc.)
+
+### `reforge install-skills`
+
+Standalone command to install global skills without re-running the full apply flow. Presents the same interactive checklist, skips already-installed skills. Useful for adding skills after initial setup or on machines where `apply` was already run.
 
 ## Commands
 
 ```
-reforge analyze       Scan project, produce diagnostic report with grade
-reforge apply         Create backup branch, add AI context layer + configs
-reforge upgrade       Self-update (git pull)
-reforge uninstall     Remove reforge
-reforge version       Print version
-reforge help          Show help
+reforge analyze         Scan project, produce diagnostic report with grade
+reforge apply           Create backup branch, add AI context layer + configs + global skills
+reforge install-skills  Install global AI skills to ~/.claude/skills/
+reforge upgrade         Self-update (git pull)
+reforge uninstall       Remove reforge
+reforge version         Print version
+reforge help            Show help
 ```
 
 ## Options
@@ -72,6 +86,15 @@ reforge help          Show help
 - **Idempotent**: Safe to run multiple times; skips what already exists
 - **No external deps**: Only bash, git, grep, wc, python3 (for sync_configs.py)
 - **Prestart integration**: Uses prestart templates if installed (`~/.prestart`), otherwise uses bundled copies
+
+## Global vs Project Skills
+
+Reforge manages two layers of skills:
+
+- **Project skills** (`.claude/skills/`) — Created per-project by `reforge apply`. Includes sync-configs, update-docs, and verify. These are specific to your project.
+- **Global skills** (`~/.claude/skills/`) — Installed by `reforge install-skills` or Step 4 of `apply`. Available across all projects on the machine. Includes autoresearch, self-improve, context-hub, visualize, and gstack.
+
+The `--yes` flag auto-installs all global skills. Without it, you get an interactive checklist to pick which ones you want.
 
 ## Auto-Detection
 

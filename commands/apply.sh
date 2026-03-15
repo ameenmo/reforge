@@ -43,6 +43,7 @@ run_apply() {
     echo "    1. Create git backup branch"
     echo "    2. Add missing configs (.gitignore, .env.example, .editorconfig)"
     echo "    3. Add AI context layer (directives, .agent, .claude, tools)"
+    echo "    4. Install global skills (optional)"
     echo ""
 
     if [ "$dry_run" = true ]; then
@@ -60,23 +61,29 @@ run_apply() {
     echo ""
 
     # ── Step 4: Backup ──
-    header "Step 1/3: Creating backup..."
+    header "Step 1/4: Creating backup..."
     source "$REFORGE_DIR/appliers/backup.sh"
     run_backup "$project_dir"
 
     # ── Step 5: Add configs ──
     echo ""
-    header "Step 2/3: Adding configs..."
+    header "Step 2/4: Adding configs..."
     source "$REFORGE_DIR/appliers/add_configs.sh"
     run_add_configs "$project_dir"
 
     # ── Step 6: Add context layer ──
     echo ""
-    header "Step 3/3: Adding AI context layer..."
+    header "Step 3/4: Adding AI context layer..."
     source "$REFORGE_DIR/appliers/add_context.sh"
     run_add_context "$project_dir"
 
-    # ── Step 7: Summary ──
+    # ── Step 7: Install global skills ──
+    echo ""
+    header "Step 4/4: Global skills..."
+    source "$REFORGE_DIR/appliers/install_skills.sh"
+    run_install_skills
+
+    # ── Step 8: Summary ──
     echo ""
     echo -e "${BOLD}${GREEN}"
     echo "  ╔══════════════════════════════════════════╗"
@@ -101,6 +108,14 @@ run_apply() {
         echo "    + .agent/                 — AI context layer"
         echo "    + .claude/                — Claude Code config + skills"
         echo "    + tools/sync_configs.py   — Config sync engine"
+        echo ""
+    fi
+
+    if [ ${#SKILLS_INSTALLED[@]} -gt 0 ]; then
+        echo -e "  ${BOLD}Global skills installed:${RESET}"
+        for skill in "${SKILLS_INSTALLED[@]}"; do
+            echo "    + ${skill}"
+        done
         echo ""
     fi
 

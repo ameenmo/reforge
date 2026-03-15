@@ -46,12 +46,13 @@ usage() {
     echo "Usage: reforge <command> [options]"
     echo ""
     echo "Commands:"
-    echo "  analyze       Scan project, produce diagnostic report with grade"
-    echo "  apply         Create backup branch, add AI context layer + missing configs"
-    echo "  upgrade       Self-update (git pull)"
-    echo "  uninstall     Remove reforge"
-    echo "  version       Print version"
-    echo "  help          Show this help"
+    echo "  analyze         Scan project, produce diagnostic report with grade"
+    echo "  apply           Create backup branch, add AI context layer + missing configs"
+    echo "  install-skills  Install global AI skills to ~/.claude/skills/"
+    echo "  upgrade         Self-update (git pull)"
+    echo "  uninstall       Remove reforge"
+    echo "  version         Print version"
+    echo "  help            Show this help"
     echo ""
     echo "Options:"
     echo "  --yes, -y     Skip confirmations"
@@ -72,6 +73,11 @@ cmd_analyze() {
 cmd_apply() {
     source "$REFORGE_DIR/commands/apply.sh"
     run_apply "$(pwd)"
+}
+
+cmd_install_skills() {
+    source "$REFORGE_DIR/commands/install_skills.sh"
+    run_install_skills_cmd
 }
 
 cmd_upgrade() {
@@ -139,6 +145,7 @@ cmd_version() {
 case "${1:-help}" in
     analyze)    cmd_analyze ;;
     apply)      cmd_apply ;;
+    install-skills) cmd_install_skills ;;
     upgrade)    cmd_upgrade ;;
     uninstall)  cmd_uninstall ;;
     version|-V|--version) cmd_version ;;

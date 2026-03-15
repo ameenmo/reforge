@@ -61,3 +61,52 @@ input_with_default() {
     read -rp "  ${prompt} (default: ${default}): " INPUT_RESULT
     INPUT_RESULT="${INPUT_RESULT:-$default}"
 }
+
+# checklist "Prompt" name1 desc1 name2 desc2 ...
+# Sets CHECKLIST_RESULT as an array of selected names
+# Respects FLAG_YES (selects all when true)
+checklist() {
+    local prompt="$1"
+    shift
+
+    # Parse name/description pairs
+    local names=() descs=()
+    while [ $# -ge 2 ]; do
+        names+=("$1"); descs+=("$2"); shift 2
+    done
+
+    if [ "${FLAG_YES:-false}" = true ]; then
+        CHECKLIST_RESULT=("${names[@]}")
+        return
+    fi
+
+    echo ""
+    echo -e "  ${prompt}"
+    echo ""
+    for i in "${!names[@]}"; do
+        echo "    $((i + 1))) ${names[$i]} — ${descs[$i]}"
+    done
+    echo ""
+    echo "    A) All"
+    echo "    S) Skip all"
+    echo ""
+
+    local answer
+    read -rp "  Select (e.g. 1,3,5 or A or S) [default: A]: " answer
+    answer="${answer:-A}"
+
+    CHECKLIST_RESULT=()
+    if [[ "$answer" =~ ^[Aa] ]]; then
+        CHECKLIST_RESULT=("${names[@]}")
+    elif [[ "$answer" =~ ^[Ss] ]]; then
+        CHECKLIST_RESULT=()
+    else
+        IFS=',' read -ra selections <<< "$answer"
+        for sel in "${selections[@]}"; do
+            sel="$(echo "$sel" | tr -d ' ')"
+            if [[ "$sel" =~ ^[0-9]+$ ]] && [ "$sel" -ge 1 ] && [ "$sel" -le "${#names[@]}" ]; then
+                CHECKLIST_RESULT+=("${names[$((sel - 1))]}")
+            fi
+        done
+    fi
+}
