@@ -27,6 +27,13 @@ run_analyze() {
     local project_dir="${1:-.}"
     local verbose="${FLAG_VERBOSE:-false}"
 
+    # Ensure analyzer arrays exist (avoid "unbound variable" under set -u)
+    STRUCTURE_FINDINGS=()
+    LARGE_FILES_FINDINGS=()
+    ESSENTIALS_PRESENT=()
+    ESSENTIALS_MISSING=()
+    SECRETS_FINDINGS=()
+
     echo ""
     echo -e "${BOLD}${CYAN}  Analyzing project...${RESET}"
     echo ""
