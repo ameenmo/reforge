@@ -62,21 +62,26 @@
 4. Edit `directives/SOP.md` or `.agent/hints/`, then run `python tools/sync_configs.py` to update configs
 <!-- Add project-specific hard rules below -->
 
-## 8. gstack
+## 8. gstack — Development Workflow Skills
 
-Use the `/browse` skill from gstack for **all web browsing**. Never use `mcp__claude-in-chrome__*` tools.
+[gstack](https://github.com/garrytan/gstack) is a suite of specialized Claude Code skills that provide distinct cognitive modes for each phase of development — planning, reviewing, shipping, QA, and more. Each skill acts as a specialist (founder, engineering manager, QA lead, release engineer) rather than a generic assistant.
 
-Available gstack skills:
-- `/plan-ceo-review` — CEO-level plan review
-- `/plan-eng-review` — Engineering plan review
-- `/review` — Code review
-- `/ship` — Ship code
-- `/browse` — Web browsing (use this instead of MCP browser tools)
-- `/qa` — QA testing
-- `/setup-browser-cookies` — Set up browser cookies for authenticated browsing
-- `/retro` — Retrospective
+**Important:** These are 8 separate skills invoked individually, not one `/gstack` command.
 
-If gstack skills aren't working, run `cd .claude/skills/gstack && ./setup` to build the binary and register skills.
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/plan-ceo-review` | Founder / product thinker | Challenge assumptions, find the 10-star version of the plan |
+| `/plan-eng-review` | Engineering manager | Lock architecture, review edge cases, validate data flow |
+| `/review` | Paranoid code reviewer | Pre-landing code review focused on production failure modes |
+| `/ship` | Release engineer | Run tests, create PR, deploy — one-command shipping |
+| `/qa` | QA lead | Systematic QA testing workflows with verification |
+| `/browse` | Browser automation | Headless browser for navigating, clicking, screenshots, form testing |
+| `/retro` | Team lead | Sprint/task retrospective with per-person feedback |
+| `/setup-browser-cookies` | Session manager | Import browser cookies for authenticated browsing in `/browse` and `/qa` |
+
+**Browsing rule:** Use `/browse` for **all web browsing**. Never use `mcp__claude-in-chrome__*` tools.
+
+**Troubleshooting:** If gstack skills aren't working, run `cd .claude/skills/gstack && ./setup` to rebuild.
 
 ## 9. Workflow
 
