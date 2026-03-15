@@ -75,6 +75,13 @@ print_report() {
     local project_basename
     project_basename=$(basename "$(cd "$project_dir" && pwd)")
 
+    # Normalize arrays (safe under set -u; macOS CI may have them unset)
+    STRUCTURE_FINDINGS=("${STRUCTURE_FINDINGS[@]+"${STRUCTURE_FINDINGS[@]}"}")
+    LARGE_FILES_FINDINGS=("${LARGE_FILES_FINDINGS[@]+"${LARGE_FILES_FINDINGS[@]}"}")
+    ESSENTIALS_PRESENT=("${ESSENTIALS_PRESENT[@]+"${ESSENTIALS_PRESENT[@]}"}")
+    ESSENTIALS_MISSING=("${ESSENTIALS_MISSING[@]+"${ESSENTIALS_MISSING[@]}"}")
+    SECRETS_FINDINGS=("${SECRETS_FINDINGS[@]+"${SECRETS_FINDINGS[@]}"}")
+
     echo -e "${BOLD}"
     echo "  ══════════════════════════════════════"
     echo "    REFORGE ANALYSIS"
@@ -146,6 +153,13 @@ save_report() {
     local report_file="$project_dir/.reforge/report.md"
     local project_basename
     project_basename=$(basename "$(cd "$project_dir" && pwd)")
+
+    # Normalize arrays (safe under set -u)
+    STRUCTURE_FINDINGS=("${STRUCTURE_FINDINGS[@]+"${STRUCTURE_FINDINGS[@]}"}")
+    LARGE_FILES_FINDINGS=("${LARGE_FILES_FINDINGS[@]+"${LARGE_FILES_FINDINGS[@]}"}")
+    ESSENTIALS_PRESENT=("${ESSENTIALS_PRESENT[@]+"${ESSENTIALS_PRESENT[@]}"}")
+    ESSENTIALS_MISSING=("${ESSENTIALS_MISSING[@]+"${ESSENTIALS_MISSING[@]}"}")
+    SECRETS_FINDINGS=("${SECRETS_FINDINGS[@]+"${SECRETS_FINDINGS[@]}"}")
 
     mkdir -p "$project_dir/.reforge"
 
