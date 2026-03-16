@@ -1,5 +1,8 @@
 # Reforge
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-brightgreen.svg)](VERSION)
+
 Restructure existing projects for AI-native development.
 
 **Prestart** creates new projects with proper structure. **Reforge** fixes existing ones — it analyzes, diagnoses, and upgrades messy projects with proper structure and the full AI context layer.
@@ -16,6 +19,12 @@ git clone https://github.com/ameenmo/reforge ~/.reforge
 # Option B: One-liner
 curl -fsSL https://raw.githubusercontent.com/ameenmo/reforge/main/install.sh | bash
 ```
+
+### Install via Claude Code
+
+Paste this prompt into Claude Code:
+
+> Clone https://github.com/ameenmo/reforge to ~/.reforge and run ~/.reforge/install.sh to install it. Then cd into my current project and run reforge analyze to show me the diagnostic report.
 
 ## Quick Start
 
