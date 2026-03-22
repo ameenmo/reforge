@@ -158,7 +158,7 @@ run_add_context() {
     if [ -d "$gstack_global" ] && [ ! -e "$project_dir/.claude/skills/gstack" ]; then
         mkdir -p "$project_dir/.claude/skills"
         ln -sf "$gstack_global" "$project_dir/.claude/skills/gstack"
-        local gstack_skills=("plan-ceo-review" "plan-eng-review" "review" "ship" "qa" "browse" "retro" "setup-browser-cookies")
+        local gstack_skills=("benchmark" "browse" "canary" "careful" "codex" "design-consultation" "design-review" "document-release" "freeze" "gstack-upgrade" "guard" "investigate" "land-and-deploy" "office-hours" "plan-ceo-review" "plan-design-review" "plan-eng-review" "qa" "qa-only" "retro" "review" "setup-browser-cookies" "setup-deploy" "ship" "unfreeze")
         for skill in "${gstack_skills[@]}"; do
             if [ -d "$gstack_global/$skill" ] && [ ! -e "$project_dir/.claude/skills/$skill" ]; then
                 ln -sf "$gstack_global/$skill" "$project_dir/.claude/skills/$skill"

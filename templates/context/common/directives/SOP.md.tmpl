@@ -64,20 +64,64 @@
 
 ## 8. gstack — Development Workflow Skills
 
-[gstack](https://github.com/garrytan/gstack) is a suite of specialized Claude Code skills that provide distinct cognitive modes for each phase of development — planning, reviewing, shipping, QA, and more. Each skill acts as a specialist (founder, engineering manager, QA lead, release engineer) rather than a generic assistant.
+[gstack](https://github.com/garrytan/gstack) is a suite of 25 specialized Claude Code skills that provide distinct cognitive modes for each phase of development — ideation, planning, design, reviewing, shipping, QA, debugging, deployment, and more. Each skill acts as a specialist rather than a generic assistant.
 
-**Important:** These are 8 separate skills invoked individually, not one `/gstack` command.
+**Important:** These are 25 separate skills invoked individually, not one `/gstack` command.
+
+### Planning & Ideation
 
 | Skill | Role | What it does |
 |-------|------|-------------|
+| `/office-hours` | YC partner | Brainstorming — forcing questions for startups or design thinking for builders |
 | `/plan-ceo-review` | Founder / product thinker | Challenge assumptions, find the 10-star version of the plan |
 | `/plan-eng-review` | Engineering manager | Lock architecture, review edge cases, validate data flow |
-| `/review` | Paranoid code reviewer | Pre-landing code review focused on production failure modes |
-| `/ship` | Release engineer | Run tests, create PR, deploy — one-command shipping |
-| `/qa` | QA lead | Systematic QA testing workflows with verification |
+| `/plan-design-review` | Designer | Rate design dimensions 0-10, fix the plan to reach 10 |
+
+### Design
+
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/design-consultation` | Design systems lead | Create a complete design system (DESIGN.md) with typography, color, layout |
+| `/design-review` | Visual QA designer | Find and fix visual inconsistencies, spacing issues, AI slop patterns |
+
+### Implementation & Debugging
+
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/investigate` | Root cause analyst | Systematic debugging — investigate, analyze, hypothesize, implement |
 | `/browse` | Browser automation | Headless browser for navigating, clicking, screenshots, form testing |
-| `/retro` | Team lead | Sprint/task retrospective with per-person feedback |
-| `/setup-browser-cookies` | Session manager | Import browser cookies for authenticated browsing in `/browse` and `/qa` |
+| `/freeze` | Scope limiter | Restrict file edits to a specific directory for the session |
+| `/unfreeze` | Scope restorer | Clear the freeze boundary, allow edits everywhere again |
+| `/careful` | Safety guard | Warn before destructive commands (rm -rf, DROP TABLE, force-push) |
+| `/guard` | Full safety mode | Combines `/careful` + `/freeze` for maximum safety |
+
+### Testing & QA
+
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/qa` | QA lead | Systematic QA testing — find bugs, fix them, verify fixes |
+| `/qa-only` | QA reporter | Report-only QA — structured bug report without fixing anything |
+| `/benchmark` | Performance engineer | Performance regression detection with Core Web Vitals baselines |
+| `/setup-browser-cookies` | Session manager | Import browser cookies for authenticated `/browse` and `/qa` sessions |
+
+### Review & Shipping
+
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/review` | Paranoid code reviewer | Pre-landing code review focused on production failure modes |
+| `/codex` | Second opinion | OpenAI Codex wrapper — independent code review, adversarial challenge, or consult |
+| `/ship` | Release engineer | Run tests, create PR, deploy — one-command shipping |
+| `/land-and-deploy` | Deploy engineer | Merge PR, wait for CI, verify production health via canary checks |
+| `/setup-deploy` | Deploy configurator | Configure deployment settings (platform, URL, health checks) for `/land-and-deploy` |
+| `/canary` | Post-deploy monitor | Watch live app for errors, perf regressions, and page failures after deploy |
+
+### Maintenance
+
+| Skill | Role | What it does |
+|-------|------|-------------|
+| `/document-release` | Technical writer | Post-ship docs update — sync README, CHANGELOG, ARCHITECTURE with what shipped |
+| `/retro` | Team lead | Sprint/task retrospective with per-person feedback and trend tracking |
+| `/gstack-upgrade` | Updater | Upgrade gstack to the latest version |
 
 **Browsing rule:** Use `/browse` for **all web browsing**. Never use `mcp__claude-in-chrome__*` tools.
 

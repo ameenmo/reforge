@@ -42,7 +42,7 @@ Initial setup — project structure bootstrapped, ready for development.
 │       ├── sync-configs/       # /sync-configs skill
 │       ├── update-docs/        # /update-docs skill
 │       ├── verify/             # /verify skill
-│       └── gstack/             # gstack: 8 specialist workflow skills (invoke individually, not as /gstack)
+│       └── gstack/             # gstack: 25 specialist workflow skills (invoke individually, not as /gstack)
 │
 ├── tools/
 │   ├── sync_configs.py         # Generate AI tool configs from SOP
@@ -70,15 +70,32 @@ Initial setup — project structure bootstrapped, ready for development.
 
 ## Skill Commands (gstack)
 
-[gstack](https://github.com/garrytan/gstack) provides 8 specialized workflow skills — each acts as a distinct specialist role. Invoke them individually (not as `/gstack`).
+[gstack](https://github.com/garrytan/gstack) provides 25 specialized workflow skills — each acts as a distinct specialist role. Invoke them individually (not as `/gstack`).
 
 | Skill | Role | Purpose |
 |-------|------|---------|
+| `/office-hours` | YC partner | Brainstorming and idea validation |
 | `/plan-ceo-review` | Founder | Challenge assumptions, find the 10-star version of the plan |
 | `/plan-eng-review` | Eng manager | Lock architecture, edge cases, data flow |
-| `/review` | Code reviewer | Pre-landing code review focused on production failure modes |
-| `/ship` | Release engineer | Run tests, create PR, deploy in one command |
-| `/qa` | QA lead | Systematic QA testing workflows |
+| `/plan-design-review` | Designer | Rate design dimensions 0-10, fix plan to reach 10 |
+| `/design-consultation` | Design lead | Create complete design system (DESIGN.md) |
+| `/design-review` | Visual QA | Find and fix visual inconsistencies and AI slop |
+| `/investigate` | Root cause analyst | Systematic debugging — no fixes without root cause |
 | `/browse` | Browser automation | Headless browser: navigate, click, screenshot, test forms |
-| `/retro` | Team lead | Sprint/task retrospective with per-person feedback |
+| `/freeze` | Scope limiter | Restrict edits to a specific directory |
+| `/unfreeze` | Scope restorer | Clear freeze boundary, allow all edits |
+| `/careful` | Safety guard | Warn before destructive commands |
+| `/guard` | Full safety | Combines `/careful` + `/freeze` |
+| `/qa` | QA lead | Systematic QA testing — find, fix, verify bugs |
+| `/qa-only` | QA reporter | Report-only QA without fixes |
+| `/benchmark` | Perf engineer | Performance regression detection with Web Vitals |
 | `/setup-browser-cookies` | Session manager | Import cookies for authenticated `/browse` and `/qa` sessions |
+| `/review` | Code reviewer | Pre-landing code review focused on production failure modes |
+| `/codex` | Second opinion | Independent code review via OpenAI Codex |
+| `/ship` | Release engineer | Run tests, create PR, deploy in one command |
+| `/land-and-deploy` | Deploy engineer | Merge PR, wait for CI, verify production health |
+| `/setup-deploy` | Deploy config | Configure deployment platform and health checks |
+| `/canary` | Post-deploy monitor | Watch live app for errors after deploy |
+| `/document-release` | Tech writer | Post-ship docs update synced with what shipped |
+| `/retro` | Team lead | Sprint/task retrospective with per-person feedback |
+| `/gstack-upgrade` | Updater | Upgrade gstack to latest version |
